@@ -1,9 +1,27 @@
-# The upstream Go AIP api-linter, fetched via go_deps in //MODULE.bazel and
-# re-exposed under a stable label so the rules in //aip don't hard-code the
-# gazelle-generated repo name.
+# The api-linter binary, selected per host platform from the prebuilt release
+# archives fetched by the //aip:extensions.bzl%api_linter extension. native_binary
+# wraps the raw binary as a runnable target so rules can use it as an exec tool.
+load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
+
 package(default_visibility = ["//visibility:public"])
 
-alias(
+[
+    config_setting(name = n, constraint_values = cv)
+    for n, cv in {
+        "darwin_arm64": ["@platforms//os:macos", "@platforms//cpu:arm64"],
+        "darwin_amd64": ["@platforms//os:macos", "@platforms//cpu:x86_64"],
+        "linux_amd64": ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+        "windows_amd64": ["@platforms//os:windows", "@platforms//cpu:x86_64"],
+    }.items()
+]
+
+native_binary(
     name = "api-linter",
-    actual = "@com_github_googleapis_api_linter_v2//cmd/api-linter:api-linter",
+    src = select({
+        ":darwin_arm64": "@rules_aip_api_linter_darwin_arm64//:linter",
+        ":darwin_amd64": "@rules_aip_api_linter_darwin_amd64//:linter",
+        ":linux_amd64": "@rules_aip_api_linter_linux_amd64//:linter",
+        ":windows_amd64": "@rules_aip_api_linter_windows_amd64//:linter",
+    }),
+    out = "api-linter-bin",
 )

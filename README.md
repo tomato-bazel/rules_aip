@@ -4,7 +4,7 @@ Bazel rules for [Google AIP](https://aip.dev) proto linting — a shared toolkit
 so repos stop recreating the `api-linter` setup by hand.
 
 Published to [`fastverk/bazel-registry`](https://github.com/fastverk/bazel-registry);
-consume via `bazel_dep(name = "rules_aip", version = "0.1.0")`.
+consume via `bazel_dep(name = "rules_aip", version = "0.2.0")`.
 
 ## What it replaces
 
@@ -48,9 +48,11 @@ aip_proto_lint(
 
 ## Toolchain
 
-The linter is the upstream Go binary (`github.com/googleapis/api-linter` v2.3.1),
-fetched once via `rules_go` + `gazelle` (`//tools/api-linter:go.mod`) and re-exposed
-as `@rules_aip//tools/api-linter:api-linter`.
+The linter is the upstream **prebuilt** api-linter release binary (v2.3.1),
+fetched per-platform as a sha256-pinned `http_archive` (no Go toolchain /
+build-from-source) and re-exposed as `@rules_aip//tools/api-linter:api-linter`.
+It lands in Bazel's downloads cache, so lint runs are offline after the first
+fetch. Platforms: darwin/{amd64,arm64}, linux/amd64, windows/amd64.
 
 ## Example
 
@@ -65,6 +67,6 @@ deliberately broad — protovalidate, buf breaking-change detection, and
 AIP→OpenAPI/gateway generation can join later without a rename. Multi-language
 stub generation is intentionally out of scope (use `rules_proto_grpc`).
 
-> v0.1 scaffold: finalize with `bazel test //examples/...` to lock the
-> `MODULE.bazel.lock` / go module graph and confirm api-linter flag behavior in
-> your Bazel/toolchain combo.
+> Verify with `bazel test //examples/...` to confirm api-linter flag behavior in
+> your Bazel/toolchain combo. The linter binary itself is a pinned prebuilt, so
+> no toolchain/source build is involved.
