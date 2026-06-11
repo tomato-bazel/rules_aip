@@ -1,0 +1,4 @@
+package(default_visibility = ["//visibility:public"])
+
+# Public API: //aip:defs.bzl  (aip_proto_lint, aip_proto_library, AIP_* dep groups)
+exports_files([".bazelrc"])
