@@ -26,15 +26,20 @@ def _aip_lint_impl(ctx):
     flags += ["--disable-rule=%s" % r for r in ctx.attr.disable_rules]
     flags += ["--enable-rule=%s" % r for r in ctx.attr.enable_rules]
 
+    # api-linter's --descriptor-set-in is a stringArray ("May be specified
+    # multiple times."): repeat the flag once per descriptor set. Joining
+    # the paths with the OS path separator is read by the linter binary as
+    # one (nonexistent, eventually too-long) filename.
+    flags += ["--descriptor-set-in=%s" % d.path for d in desc_sets]
+
     extra_inputs = []
     if ctx.file.config:
         flags.append("--config=%s" % ctx.file.config.path)
         extra_inputs.append(ctx.file.config)
 
-    cmd = '{linter} {flags} --descriptor-set-in="{desc}" {names} && touch {marker}'.format(
+    cmd = "{linter} {flags} {names} && touch {marker}".format(
         linter = ctx.executable._linter.path,
         flags = " ".join(flags),
-        desc = ":".join([d.path for d in desc_sets]),
         names = " ".join(names),
         marker = marker.path,
     )
