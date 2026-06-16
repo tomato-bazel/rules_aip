@@ -39,7 +39,7 @@ service Bookstore {
       post: "/v1/{parent=publishers/*}/books"
       body: "book"
     };
-    option (google.api.method_signature) = "parent,book";
+    option (google.api.method_signature) = "parent,book,book_id";
   }
 }
 
