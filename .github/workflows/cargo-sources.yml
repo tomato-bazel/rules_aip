@@ -1,0 +1,68 @@
+name: Cargo proto sources
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "cargo/googleapis-proto-source/**"
+      - "MODULE.bazel"
+      - ".github/workflows/cargo-sources.yml"
+  pull_request:
+    paths:
+      - "cargo/googleapis-proto-source/**"
+      - "MODULE.bazel"
+      - ".github/workflows/cargo-sources.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Verify the Cargo package
+        run: |
+          set -euo pipefail
+          export CARGO_TARGET_DIR="$RUNNER_TEMP/googleapis-source-target"
+          cargo package --manifest-path cargo/googleapis-proto-source/Cargo.toml --offline
+      - name: Consume the source crate through Git
+        run: |
+          set -euo pipefail
+          export CARGO_TARGET_DIR="$RUNNER_TEMP/googleapis-source-target"
+          consumer="$RUNNER_TEMP/googleapis-source-consumer"
+          mkdir -p "$consumer/src"
+          cat > "$consumer/Cargo.toml" <<EOF
+          [package]
+          name = "googleapis-source-consumer"
+          version = "0.0.0"
+          edition = "2021"
+          [dependencies]
+          googleapis-proto-source = { git = "file://${GITHUB_WORKSPACE}", rev = "${GITHUB_SHA}" }
+          EOF
+          cat > "$consumer/src/main.rs" <<'EOF'
+          fn main() {
+              let path = googleapis_proto_source::include_dir()
+                  .join("google/api/field_behavior.proto");
+              println!("{}", path.display());
+          }
+          EOF
+          source_path="$(cargo run --quiet --manifest-path "$consumer/Cargo.toml")"
+          printf '%s  %s\n' \
+            bb7ed77725c95f751ec2c47cd92359d0137c39383b8a62aef41bab7aa7478da5 \
+            "$source_path" | sha256sum --check -
+  canonical:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Bazelisk
+        run: |
+          set -euo pipefail
+          curl -fsSL -o "$RUNNER_TEMP/bazel" \
+            https://github.com/bazelbuild/bazelisk/releases/download/v1.20.0/bazelisk-linux-amd64
+          chmod +x "$RUNNER_TEMP/bazel"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+      - name: Compare the source with the Bazel module
+        run: bazel test //cargo/googleapis-proto-source:canonical_source_test

@@ -83,3 +83,16 @@ stub generation is intentionally out of scope (use `rules_proto_grpc`).
 > Verify with `bazel test //examples/...` to confirm api-linter flag behavior in
 > your Bazel/toolchain combo. The linter binary itself is a pinned prebuilt, so
 > no toolchain/source build is involved.
+
+## Cargo annotation sources
+
+[`cargo/googleapis-proto-source`](cargo/googleapis-proto-source) is a small,
+source-only Cargo package for native Cargo build scripts that import Google API
+field-behavior annotations. `googleapis_proto_source::include_dir()` returns the
+packaged proto include root. It has no generated types, runtime dependencies,
+build script, compiler, or network fetch step. Its Apache-2.0 Google source is
+pinned to the same commit as this module's `googleapis` dependency.
+
+`bazel test //cargo/googleapis-proto-source:canonical_source_test` guards that
+byte identity; the Cargo-source CI also verifies package contents and a direct
+Git consumer. This additive package does not change the AIP rules or toolchain.
