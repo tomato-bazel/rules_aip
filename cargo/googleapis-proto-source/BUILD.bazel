@@ -1,0 +1,8 @@
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+
+# Keep native Cargo imports and Bazel's declared Google API schema byte-identical.
+diff_test(
+    name = "canonical_source_test",
+    file1 = "proto/google/api/field_behavior.proto",
+    file2 = "@googleapis//google/api:field_behavior.proto",
+)

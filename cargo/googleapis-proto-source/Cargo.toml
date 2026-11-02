@@ -1,0 +1,18 @@
+[package]
+name = "googleapis-proto-source"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.56"
+description = "Pinned Google API annotation proto sources for build-time imports"
+license = "Apache-2.0"
+repository = "https://github.com/tomato-bazel/rules_aip"
+readme = "README.md"
+build = false
+include = [
+    "/src/lib.rs",
+    "/proto/google/api/field_behavior.proto",
+    "/LICENSE",
+    "/README.md",
+]
+
+[dependencies]
