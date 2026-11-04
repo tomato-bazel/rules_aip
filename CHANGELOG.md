@@ -5,6 +5,15 @@ All notable changes to this module are documented here; this project adheres to
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-11-04
+
+### Added
+
+- Ship the `googleapis-proto-source` 0.1.0 Cargo package with pinned Google API
+  annotation sources for build-time imports. CI verifies package contents,
+  consumption through Git, and agreement with the Bazel source dependency.
+
+
 ## [0.3.0] — 2026-07-27
 
 ### Changed
